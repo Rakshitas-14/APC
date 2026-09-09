@@ -1,87 +1,211 @@
-#include"main.h"
+#include "main.h"
 
-Status validate_operands(char *str)
+int main(int argc, char *argv[])
 {
-     for(int i=0;str[i]!='\0';i++)
-     {
-        if(!(str[i]>='0' && str[i] <='9'))
-        {
-            return FAILURE;
-        }
-     } 
-     return SUCCESS;      
+    Node *head1 = NULL;
+    Node *tail1 = NULL;
+
+    Node *head2 = NULL;
+    Node *tail2 = NULL;
+
+    Node *head_result = NULL;
+    Node *tail_result = NULL;
+
+    int i;
+
+    if (argc != 4)
+    {
+        printf("Usage: ./apc operand1 operator operand2\n");
+        return 1;
+    }
+
+    if (validate_operand(argv[1]) == 0)
+    {
+        printf("Invalid first operand\n");
+        return 1;
+    }
+
+    if (validate_operator(argv[2]) == 0)
+    {
+        printf("Invalid operator\n");
+        return 1;
+    }
+
+    if (validate_operand(argv[3]) == 0)
+    {
+        printf("Invalid second operand\n");
+        return 1;
+    }
+
+    /* First operand */
+    i = 0;
+
+    if (argv[1][0] == '+' || argv[1][0] == '-')
+        i = 1;
+
+    while (argv[1][i] != '\0')
+    {
+        insert_at_end(&head1, &tail1, argv[1][i] - '0');
+        i++;
+    }
+
+    /* Second operand */
+    i = 0;
+
+    if (argv[3][0] == '+' || argv[3][0] == '-')
+        i = 1;
+
+    while (argv[3][i] != '\0')
+    {
+        insert_at_end(&head2, &tail2, argv[3][i] - '0');
+        i++;
+    }
+
+    /* Operation */
+    switch (argv[2][0])
+    {
+        case '+':
+            addition(tail1, tail2, &head_result, &tail_result);
+            break;
+
+        case '-':
+            subtraction(tail1, tail2, &head_result, &tail_result);
+            break;
+
+        case 'x':
+            multiplication(tail1, tail2, &head_result, &tail_result);
+            break;
+
+        case '/':
+            division(tail1, tail2, &head_result, &tail_result);
+            break;
+    }
+
+    if (head_result != NULL)
+    {
+        printf("Result : ");
+        display_list(head_result);
+    }
+
+    return 0;
 }
-Status validate_operator(char *str)
+
+
+/* Insert at end */
+void insert_at_end(Node **head, Node **tail, int data)
 {
-    if(str[1]!='\0')
+    Node *new = malloc(sizeof(Node));
+
+    if (new == NULL)
     {
-        return FAILURE;
+        printf("Memory allocation failed\n");
+        return;
     }
-    if(str[0]=='+' || str[0]=='-' || str[0]=='X' || str[0]== '/')
+
+    new->data = data;
+    new->prev = NULL;
+    new->next = NULL;
+
+    if (*head == NULL)
     {
-        return SUCCESS;
+        *head = new;
+        *tail = new;
     }
-        return FAILURE;
+    else
+    {
+        new->prev = *tail;
+        (*tail)->next = new;
+        *tail = new;
+    }
 }
-Status convert_data(char *str, Slist **head)
+
+
+/* Insert at beginning */
+void insert_at_beginning(Node **head, Node **tail, int data)
 {
-    for(int i = 0; str[i] != '\0'; i++)
+    Node *new = malloc(sizeof(Node));
+
+    if (new == NULL)
     {
-        int digit = str[i] - '0';
-
-        Slist *new = malloc(sizeof(Slist));
-
-        if(new == NULL)
-        {
-            return FAILURE;
-        }
-
-        new->data = digit;
-        new->prev = NULL;
-        new->next = NULL;
-
-        if(*head == NULL)
-        {
-            *head = new;
-        }
-        else
-        {
-            Slist *temp = *head;
-
-            while(temp->next != NULL)
-            {
-                temp = temp->next;
-            }
-
-            temp->next = new;
-            new->prev = temp;
-        }
+        printf("Memory allocation failed\n");
+        return;
     }
 
-    return SUCCESS;
+    new->data = data;
+    new->prev = NULL;
+    new->next = NULL;
+
+    if (*head == NULL)
+    {
+        *head = new;
+        *tail = new;
+    }
+    else
+    {
+        new->next = *head;
+        (*head)->prev = new;
+        *head = new;
+    }
 }
-int main(int argc,char *argv[])
+
+
+/* Display */
+void display_list(Node *head)
 {
-    Slist *head1 = NULL;
-    Slist *head2 = NULL;
-    //validate the command line arguments
-    if(argc!=4)
+    Node *temp = head;
+
+    while (temp != NULL)
     {
-        return FAILURE;
+        printf("%d", temp->data);
+        temp = temp->next;
     }
-    int ret1=validate_operands(argv[1]);
-    int ret2=validate_operands(argv[3]);
-    int ret3=validate_operator(argv[2]);
-        if(ret1==SUCCESS && ret2 == SUCCESS && ret3 == SUCCESS)
-        {
-            printf("arguments which are passed by user are valid \n");
-            return SUCCESS;
-        }
-        else
-        {
-            printf("invalid arguments\n");
-            return FAILURE;
-        }
-    convert_data(argv[1],&head1);
-    convert_data(argv[3],&head2);
+
+    printf("\n");
+}
+
+
+/* Validate operand */
+int validate_operand(const char *str)
+{
+    int i = 0;
+
+    if (str == NULL || str[0] == '\0')
+        return 0;
+
+    if (str[i] == '+' || str[i] == '-')
+        i++;
+
+    if (str[i] == '\0')
+        return 0;
+
+    while (str[i] != '\0')
+    {
+        if (str[i] < '0' || str[i] > '9')
+            return 0;
+
+        i++;
+    }
+
+    return 1;
+}
+
+
+/* Validate operator */
+int validate_operator(const char *str)
+{
+    if (str == NULL)
+        return 0;
+
+    if (strlen(str) != 1)
+        return 0;
+
+    if (str[0] == '+' ||
+        str[0] == '-' ||
+        str[0] == 'x' ||
+        str[0] == '/')
+    {
+        return 1;
+    }
+
+    return 0;
 }
