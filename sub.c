@@ -32,13 +32,17 @@ void subtraction(Node *tail1, Node *tail2,
     }
 
     /* Remove leading zeros */
+
     while (*head_result != NULL &&
            (*head_result)->data == 0 &&
            (*head_result)->next != NULL)
     {
         Node *temp = *head_result;
+
         *head_result = (*head_result)->next;
+
         (*head_result)->prev = NULL;
+
         free(temp);
     }
 }

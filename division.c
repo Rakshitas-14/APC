@@ -1,69 +1,18 @@
 #include "main.h"
 
-/* Compare two numbers
-   1  -> first number is greater
-   0  -> equal
-  -1  -> first number is smaller
-*/
-int compare_lists(Node *head1, Node *head2)
-{
-    int count1 = 0;
-    int count2 = 0;
-    Node *temp1 = head1;
-    Node *temp2 = head2;
-
-    while (temp1 != NULL)
-    {
-        count1++;
-        temp1 = temp1->next;
-    }
-
-    while (temp2 != NULL)
-    {
-        count2++;
-        temp2 = temp2->next;
-    }
-
-    if (count1 > count2)
-        return 1;
-
-    if (count1 < count2)
-        return -1;
-
-    while (head1 != NULL && head2 != NULL)
-    {
-        if (head1->data > head2->data)
-            return 1;
-
-        if (head1->data < head2->data)
-            return -1;
-
-        head1 = head1->next;
-        head2 = head2->next;
-    }
-
-    return 0;
-}
-
-
-/* Delete complete list */
-void delete_list(Node **head, Node **tail)
+static void free_list(Node *head)
 {
     Node *temp;
 
-    while (*head != NULL)
+    while (head != NULL)
     {
-        temp = *head;
-        *head = (*head)->next;
+        temp = head;
+        head = head->next;
         free(temp);
     }
-
-    *tail = NULL;
 }
 
-
-/* Remove leading zeros */
-void remove_leading_zeros(Node **head, Node **tail)
+static void remove_leading_zeros(Node **head, Node **tail)
 {
     Node *temp;
 
@@ -77,80 +26,87 @@ void remove_leading_zeros(Node **head, Node **tail)
         free(temp);
     }
 
-    if (*head == NULL)
-        *tail = NULL;
+    if (*head != NULL)
+    {
+        *tail = *head;
+
+        while ((*tail)->next != NULL)
+            *tail = (*tail)->next;
+    }
 }
 
-
-/* Division */
-void division(Node *tail1, Node *tail2,
+void division(Node *head1, Node *tail1,
+              Node *head2, Node *tail2,
               Node **head_result, Node **tail_result)
 {
-    Node *temp = NULL;
+    Node *temp = head1;
+
+    Node *temp_head = NULL;
     Node *temp_tail = NULL;
 
-    Node *rem = NULL;
+    Node *rem_head = NULL;
     Node *rem_tail = NULL;
-
-    Node *divisor_head = tail2;
 
     int count;
 
-    /* Find head of divisor */
-    while (divisor_head != NULL &&
-           divisor_head->prev != NULL)
+    /* Check division by zero */
+    if (head2->data == 0 && head2->next == NULL)
     {
-        divisor_head = divisor_head->prev;
+        printf("Division by zero is not possible\n");
+        return;
     }
 
-    /* Start from head of dividend */
-    while (tail1 != NULL &&
-           tail1->prev != NULL)
+    /* Traverse through T1 */
+    while (temp != NULL)
     {
-        tail1 = tail1->prev;
-    }
+        /* Insert H->data into Temph */
+        insert_at_end(&temp_head, &temp_tail, temp->data);
 
-    while (tail1 != NULL)
-    {
-        /* Insert current digit into Temp */
-        insert_at_end(&temp, &temp_tail, tail1->data);
-
-        remove_leading_zeros(&temp, &temp_tail);
+        remove_leading_zeros(&temp_head, &temp_tail);
 
         count = 0;
 
-        /* Repeated subtraction */
-        while (compare_lists(temp, divisor_head) >= 0)
+        /* Compare Temph and head2 */
+        while (compare_numbers(temp_head, head2) >= 0)
         {
-            rem = NULL;
-            rem_tail = NULL;
-
+            /* Call subtraction */
             subtraction(temp_tail, tail2,
-                        &rem, &rem_tail);
+                        &rem_head, &rem_tail);
 
-            delete_list(&temp, &temp_tail);
+            /* Delete list Temph */
+            free_list(temp_head);
 
-            temp = rem;
+            temp_head = NULL;
+            temp_tail = NULL;
+
+            /* Swap Remh and Temph */
+            temp_head = rem_head;
             temp_tail = rem_tail;
 
+            rem_head = NULL;
+            rem_tail = NULL;
+
+            /* Increment Count */
             count++;
         }
 
-        /* Insert quotient digit */
+        /* Insert Count into Result */
         insert_at_end(head_result, tail_result, count);
 
-        /* Move to next dividend digit */
-        tail1 = tail1->next;
+        /* Reset Count */
+        count = 0;
+
+        /* Update temp to next */
+        temp = temp->next;
     }
 
-    /* Remove leading zeros from quotient */
+    /* Remove leading zeros */
     remove_leading_zeros(head_result, tail_result);
 
-    /* If quotient is empty, result is 0 */
+    /* If result is empty */
     if (*head_result == NULL)
-    {
         insert_at_end(head_result, tail_result, 0);
-    }
 
-    delete_list(&temp, &temp_tail);
+    free_list(temp_head);
+    free_list(rem_head);
 }

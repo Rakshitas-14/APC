@@ -21,6 +21,9 @@ void insert_at_end(Node **head, Node **tail, int data);
 void insert_at_beginning(Node **head, Node **tail, int data);
 void display_list(Node *head);
 
+/* Comparison */
+int compare_numbers(Node *head1, Node *head2);
+
 /* Arithmetic */
 void addition(Node *tail1, Node *tail2,
               Node **head_result, Node **tail_result);
@@ -31,7 +34,8 @@ void subtraction(Node *tail1, Node *tail2,
 void multiplication(Node *tail1, Node *tail2,
                     Node **head_result, Node **tail_result);
 
-void division(Node *tail1, Node *tail2,
+void division(Node *head1, Node *tail1,
+              Node *head2, Node *tail2,
               Node **head_result, Node **tail_result);
 
 #endif
